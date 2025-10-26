@@ -54,12 +54,28 @@ body {
   margin: 0;
 }
 
+.timer-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 32px 0;
+  min-height: 280px;
+}
+
 .timer {
   font-size: 72px;
   text-align: center;
-  margin: 22px 0;
   font-weight: 700;
   letter-spacing: 0.02em;
+  position: absolute;
+  z-index: 2;
+  margin: 0;
+}
+
+.circular-progress {
+  position: absolute;
+  z-index: 1;
 }
 
 .controls {
@@ -596,5 +612,21 @@ input[type="checkbox"] {
   .sidebar {
     width: 100%;
     max-height: 500px;
+  }
+}
+
+@media (max-width: 600px) {
+  .timer-container {
+    min-height: 220px;
+    margin: 24px 0;
+  }
+
+  .timer {
+    font-size: 56px;
+  }
+
+  .circular-progress {
+    width: 220px !important;
+    height: 220px !important;
   }
 }

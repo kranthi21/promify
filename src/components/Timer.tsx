@@ -1,5 +1,6 @@
 import { useTimer } from '../hooks/useTimer';
 import { TimerSettings } from '../types/timer';
+import { CircularProgress } from './CircularProgress';
 
 interface TimerProps {
   settings: TimerSettings;
@@ -10,6 +11,11 @@ interface TimerProps {
 export const Timer = ({ settings, selectedEventTitle, onSessionComplete }: TimerProps) => {
   const { state, start, pause, reset, formatTime } = useTimer(settings, onSessionComplete);
 
+  const totalSeconds = state.isWork
+    ? settings.workDuration * 60
+    : settings.breakDuration * 60;
+  const progress = (state.remaining / totalSeconds) * 100;
+
   return (
     <div>
       {selectedEventTitle && (
@@ -19,7 +25,10 @@ export const Timer = ({ settings, selectedEventTitle, onSessionComplete }: Timer
         </div>
       )}
 
-      <div className="timer">{formatTime(state.remaining)}</div>
+      <div className="timer-container">
+        <CircularProgress progress={progress} isWork={state.isWork} />
+        <div className="timer">{formatTime(state.remaining)}</div>
+      </div>
 
       <div className="controls">
         <button onClick={start} disabled={state.isRunning}>
