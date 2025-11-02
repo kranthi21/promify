@@ -65,14 +65,12 @@ export const EventList = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (confirm('Delete this event?')) {
-                    onDeleteEvent(event.id);
-                  }
+                  onDeleteEvent(event.id);
                 }}
                 className="icon-button delete"
                 title="Delete event"
               >
-                ×
+                🗑
               </button>
             </div>
           </div>

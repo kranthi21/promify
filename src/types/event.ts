@@ -6,8 +6,10 @@ export interface Event {
   estimated_minutes: number;
   total_focus_time: number;
   is_completed: boolean;
+  is_deleted: boolean;
   created_at: string;
   updated_at: string;
+  deleted_at?: string;
 }
 
 export interface EventFormData {

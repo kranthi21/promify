@@ -6,6 +6,7 @@ import { Auth } from './components/Auth';
 import { EventList } from './components/EventList';
 import { EventForm } from './components/EventForm';
 import { ActivityFeed } from './components/ActivityFeed';
+import { UserProfile } from './components/UserProfile';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { useEvents } from './hooks/useEvents';
@@ -15,9 +16,15 @@ import { TimerSettings } from './types/timer';
 function App() {
   const { theme, toggleTheme } = useTheme();
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth();
-  const { events, createEvent, updateEvent, deleteEvent, incrementEventFocusTime } = useEvents(
-    user?.id
-  );
+  const {
+    events,
+    createEvent,
+    updateEvent,
+    softDeleteEvent,
+    restoreEvent,
+    fetchDeletedEvents,
+    incrementEventFocusTime,
+  } = useEvents(user?.id);
   const { sessions, sortOrder, setSortOrder, createSession } = useSessions(user?.id);
 
   const [settings, setSettings] = useState<TimerSettings>({
@@ -27,6 +34,8 @@ function App() {
   });
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [showEventForm, setShowEventForm] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [deletedEvents, setDeletedEvents] = useState<any[]>([]);
 
   if (authLoading) {
     return (
@@ -62,11 +71,26 @@ function App() {
     await updateEvent(eventId, { is_completed: isCompleted });
   };
 
+  const handleOpenProfile = async () => {
+    const deleted = await fetchDeletedEvents();
+    setDeletedEvents(deleted);
+    setShowProfile(true);
+  };
+
+  const handleRestoreEvent = async (eventId: string) => {
+    await restoreEvent(eventId);
+    const deleted = await fetchDeletedEvents();
+    setDeletedEvents(deleted);
+  };
+
   return (
     <div className="app-container">
       <div className="app-header">
         <h1>Pomify</h1>
         <div className="header-actions">
+          <button onClick={handleOpenProfile} className="profile-button" title="Profile">
+            👤
+          </button>
           <ThemeToggle theme={theme} onToggle={toggleTheme} />
           <button onClick={signOut} className="sign-out-button">
             Sign Out
@@ -96,7 +120,7 @@ function App() {
               events={events}
               selectedEventId={selectedEventId}
               onSelectEvent={setSelectedEventId}
-              onDeleteEvent={deleteEvent}
+              onDeleteEvent={softDeleteEvent}
               onToggleComplete={handleToggleComplete}
             />
           </div>
@@ -113,6 +137,15 @@ function App() {
 
       {showEventForm && (
         <EventForm onSubmit={createEvent} onCancel={() => setShowEventForm(false)} />
+      )}
+
+      {showProfile && user && (
+        <UserProfile
+          email={user.email || ''}
+          deletedEvents={deletedEvents}
+          onRestore={handleRestoreEvent}
+          onClose={() => setShowProfile(false)}
+        />
       )}
     </div>
   );

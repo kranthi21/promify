@@ -20,6 +20,7 @@ export const useEvents = (userId: string | undefined) => {
         .from('events')
         .select('*')
         .eq('user_id', userId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -66,14 +67,43 @@ export const useEvents = (userId: string | undefined) => {
     await fetchEvents();
   };
 
-  const deleteEvent = async (eventId: string) => {
+  const softDeleteEvent = async (eventId: string) => {
     const { error } = await supabase
       .from('events')
-      .delete()
+      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
       .eq('id', eventId);
 
     if (error) throw error;
     await fetchEvents();
+  };
+
+  const restoreEvent = async (eventId: string) => {
+    const { error } = await supabase
+      .from('events')
+      .update({ is_deleted: false, deleted_at: null })
+      .eq('id', eventId);
+
+    if (error) throw error;
+    await fetchEvents();
+  };
+
+  const fetchDeletedEvents = async () => {
+    if (!userId) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', true)
+        .order('deleted_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (err) {
+      console.error('Failed to fetch deleted events:', err);
+      return [];
+    }
   };
 
   const incrementEventFocusTime = async (eventId: string, seconds: number) => {
@@ -91,7 +121,9 @@ export const useEvents = (userId: string | undefined) => {
     error,
     createEvent,
     updateEvent,
-    deleteEvent,
+    softDeleteEvent,
+    restoreEvent,
+    fetchDeletedEvents,
     incrementEventFocusTime,
     refetch: fetchEvents,
   };
